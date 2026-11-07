@@ -6,6 +6,9 @@
   "scripts": {
     "dev": "node --env-file=.env --watch src/server.js",
     "start": "node src/server.js",
+    "test": "node --env-file=.env.test --test tests/*.test.js",
+    "test:postman": "newman run tests/tasks.postman_collection.json",
+    "lint": "eslint src --ignore-pattern src/generated tests/*.js",
     "migrate:dev": "npx prisma migrate dev",
     "migrate:deploy": "npx prisma migrate deploy",
     "seed:dev": "node --env-file=.env prisma/seed.js",
@@ -39,6 +42,7 @@
     "eslint": "^9.36.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.4.0",
+    "newman": "^6.2.3",
     "prettier": "^3.6.2"
   }
 }

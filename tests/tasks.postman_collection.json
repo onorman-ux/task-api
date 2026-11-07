@@ -1,0 +1,52 @@
+{
+  "info": {
+    "name": "Task API - Completed filtering",
+    "description": "Run against a seeded local database containing both completed and incomplete tasks. Requests are read-only. Override baseUrl to verify a deployed API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:3000" }],
+  "item": [
+    {
+      "name": "No filter returns all tasks",
+      "request": { "method": "GET", "url": "{{baseUrl}}/tasks" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const tasks = pm.response.json();",
+        "pm.test('Returns an array', () => pm.expect(tasks).to.be.an('array'));",
+        "pm.test('Fixture includes completed tasks', () => pm.expect(tasks.some(t => t.completed === true)).to.be.true);",
+        "pm.test('Fixture includes incomplete tasks', () => pm.expect(tasks.some(t => t.completed === false)).to.be.true);",
+        "pm.collectionVariables.set('allTasks', JSON.stringify(tasks));"
+      ] }}]
+    },
+    {
+      "name": "completed=true returns only completed tasks",
+      "request": { "method": "GET", "url": "{{baseUrl}}/tasks?completed=true" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const tasks = pm.response.json();",
+        "const expected = JSON.parse(pm.collectionVariables.get('allTasks')).filter(t => t.completed === true).map(t => t.id).sort();",
+        "pm.test('Every task is completed', () => pm.expect(tasks.every(t => t.completed === true)).to.be.true);",
+        "pm.test('Returns exactly the completed IDs', () => pm.expect(tasks.map(t => t.id).sort()).to.eql(expected));"
+      ] }}]
+    },
+    {
+      "name": "completed=false returns only incomplete tasks",
+      "request": { "method": "GET", "url": "{{baseUrl}}/tasks?completed=false" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Returns 200', () => pm.response.to.have.status(200));",
+        "const tasks = pm.response.json();",
+        "const expected = JSON.parse(pm.collectionVariables.get('allTasks')).filter(t => t.completed === false).map(t => t.id).sort();",
+        "pm.test('Every task is incomplete', () => pm.expect(tasks.every(t => t.completed === false)).to.be.true);",
+        "pm.test('Returns exactly the incomplete IDs', () => pm.expect(tasks.map(t => t.id).sort()).to.eql(expected));"
+      ] }}]
+    },
+    {
+      "name": "Invalid completed returns 400",
+      "request": { "method": "GET", "url": "{{baseUrl}}/tasks?completed=invalid" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Returns 400', () => pm.response.to.have.status(400));",
+        "pm.test('Returns validation details', () => { const body = pm.response.json(); pm.expect(body.error).to.eql('Validation failed'); pm.expect(body.details).to.be.an('array').that.is.not.empty; });"
+      ] }}]
+    }
+  ]
+}
