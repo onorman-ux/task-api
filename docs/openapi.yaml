@@ -3,6 +3,10 @@ info:
   title: Task API
   version: 1.0.0
 servers:
+  - url: /
+    description: Current server (local or deployed)
+  - url: https://onorman-task-api.onrender.com
+    description: Render production server
   - url: http://localhost:3000
     description: Local development servers
 tags:
@@ -13,9 +17,24 @@ tags:
 paths:
   /tasks:
     get:
-      summary: List all tasks
+      summary: List tasks
+      description: Return all tasks when completed is omitted, or filter by completion status.
       tags:
         - Tasks
+      parameters:
+        - name: completed
+          in: query
+          required: false
+          description: Use true for completed tasks or false for incomplete tasks. Omit to return all tasks. Only the exact values true and false are accepted; empty, repeated, and other values return 400.
+          schema:
+            type: boolean
+          examples:
+            completedTasks:
+              summary: Completed tasks
+              value: true
+            incompleteTasks:
+              summary: Incomplete tasks
+              value: false
       responses:
         '200':
           description: OK
@@ -25,6 +44,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
+        '400':
+          description: The completed query parameter is invalid.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [error, details]
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: array
+                    items:
+                      type: string
+              example:
+                error: Validation failed
+                details:
+                  - completed must be true or false
     post:
       summary: Create a new task
       tags:
